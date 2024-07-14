@@ -22,7 +22,7 @@ class QiblaCompass extends StatefulWidget {
 class _QiblaCompassState extends State<QiblaCompass> {
   double currentLatitude = 0.0;
   double currentLongitude = 0.0;
-  double qiblaDirectionM = 0.0;
+  double qiblaDirection = 0.0;
 
   // FOR FETCHING CURRENT LOCATION
   Future<void> getLocation() async {
@@ -50,10 +50,10 @@ class _QiblaCompassState extends State<QiblaCompass> {
     getLocation().then((_) {
       // Calculate Qibla direction once location is obtained
       setState(() {
-        qiblaDirectionM = QiblaLocator.calculateQiblaDirection(
+        qiblaDirection = QiblaLocator.calculateQiblaDirection(
             currentLatitude, currentLongitude);
         if (kDebugMode) {
-          print('Qibla direction: $qiblaDirectionM');
+          print('Qibla direction: $qiblaDirection');
         }
       });
     });
@@ -89,7 +89,7 @@ class _QiblaCompassState extends State<QiblaCompass> {
           final qiblahDirection = snapshot.data!;
 
           bool isPointingQibla =
-              (qiblahDirection.direction.round() == qiblaDirectionM.round());
+              (qiblahDirection.direction.round() == qiblaDirection.round());
           // Check if the direction is within the threshold of the Qibla direction for vibration
           if (isPointingQibla) {
             vibrateDevice();

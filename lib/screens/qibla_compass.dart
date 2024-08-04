@@ -10,7 +10,6 @@ import 'package:vibration/vibration.dart';
 
 import '../main.dart';
 import '../utils/compass.dart';
-import '../utils/loading_indicator.dart';
 
 class QiblaCompass extends StatefulWidget {
   const QiblaCompass({super.key});
@@ -19,7 +18,8 @@ class QiblaCompass extends StatefulWidget {
   State<QiblaCompass> createState() => _QiblaCompassState();
 }
 
-class _QiblaCompassState extends State<QiblaCompass> {
+class _QiblaCompassState extends State<QiblaCompass>
+    with AutomaticKeepAliveClientMixin {
   double currentLatitude = 0.0;
   double currentLongitude = 0.0;
   double qiblaDirection = 0.0;
@@ -82,56 +82,67 @@ class _QiblaCompassState extends State<QiblaCompass> {
         stream: FlutterQiblah.qiblahStream,
         builder: (context, AsyncSnapshot<QiblahDirection> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const LoadingIndicator();
+            return const SizedBox();
           }
           // ref.read(loadingProvider.notifier).state = false;
 
-          final qiblahDirection = snapshot.data!;
+          if (snapshot.hasData) {
+            final qiblahDirection = snapshot.data!;
 
-          bool isPointingQibla =
-              (qiblahDirection.direction.round() == qiblaDirection.round());
-          // Check if the direction is within the threshold of the Qibla direction for vibration
-          if (isPointingQibla) {
-            vibrateDevice();
-          }
+            bool isPointingQibla =
+                (qiblahDirection.direction.round() == qiblaDirection.round());
+            // Check if the direction is within the threshold of the Qibla direction for vibration
+            if (isPointingQibla) {
+              vibrateDevice();
+            }
 
-          return SafeArea(
-            child: Column(
-              children: [
-                SizedBox(height: mq.height * .04),
-                const Text(
-                  'Align the arrow with the Kaaba image for accurate Qibla direction.',
-                  softWrap: true,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 18,
+            return SafeArea(
+              child: Column(
+                children: [
+                  SizedBox(height: mq.height * .04),
+                  const Text(
+                    'Align the arrow with the Kaaba image for accurate Qibla direction.',
+                    softWrap: true,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontFamily: 'leagueSpartan',
+                        fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(height: mq.height * .15),
+                  Center(
+                    child: Icon(
+                      Icons.arrow_upward_outlined,
+                      color: isPointingQibla ? Colors.green : Colors.black,
+                    ),
+                  ),
+                  Compass(
+                    qiblaDirection: qiblahDirection,
+                  ),
+                  SizedBox(height: mq.height * .05),
+                  Text(
+                    "Direction : ${qiblahDirection.direction.toStringAsFixed(0)}°",
+                    style: const TextStyle(
                       fontFamily: 'leagueSpartan',
-                      fontWeight: FontWeight.w600),
-                ),
-                SizedBox(height: mq.height * .15),
-                Center(
-                  child: Icon(
-                    Icons.arrow_upward_outlined,
-                    color: isPointingQibla ? Colors.green : Colors.black,
+                      fontSize: 25,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                Compass(
-                  qiblaDirection: qiblahDirection,
-                ),
-                SizedBox(height: mq.height * .05),
-                Text(
-                  "Direction : ${qiblahDirection.direction.toStringAsFixed(0)}°",
-                  style: const TextStyle(
-                    fontFamily: 'leagueSpartan',
-                    fontSize: 25,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          );
+                ],
+              ),
+            );
+          } else {
+            return const Center(
+                child: CircularProgressIndicator(
+              color: Colors.yellow,
+            ));
+          }
         },
       );
     });
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }
